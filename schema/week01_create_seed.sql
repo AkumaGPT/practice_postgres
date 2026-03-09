@@ -10,18 +10,21 @@ customer_id INT PRIMARY KEY, -- must be unique and not empty
 full_name TEXT NOT NULL -- name must be provided
 );
 
+-- create prodcuts table
 CREATE TABLE products (
   product_id INT PRIMARY KEY,
   product_name       TEXT NOT NULL,
   price      NUMERIC(10,2) NOT NULL
 );
 
+--create orders table
 CREATE TABLE orders (
   order_id    INT PRIMARY KEY,
   customer_id INT NOT NULL REFERENCES customers(customer_id),
   order_date  DATE NOT NULL
 );
 
+--create order_items table
 CREATE TABLE order_items (
   order_id   INT NOT NULL REFERENCES orders(order_id),
   product_id INT NOT NULL REFERENCES products(product_id),
@@ -53,3 +56,8 @@ INSERT INTO order_items (order_id, product_id, qty) VALUES
 (102, 13, 1);
 
 SELECT COUNT(*) FROM customers; -- count total no of rows from customers table
+
+-- see all the tables
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public';
