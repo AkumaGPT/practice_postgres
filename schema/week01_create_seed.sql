@@ -51,3 +51,5 @@ INSERT INTO order_items (order_id, product_id, qty) VALUES
 (101, 12, 1),
 (102, 11, 2),
 (102, 13, 1);
+
+SELECT COUNT(*) FROM customers; -- count total no of rows from customers table
