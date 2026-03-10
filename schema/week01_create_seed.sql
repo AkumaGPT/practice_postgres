@@ -61,3 +61,19 @@ SELECT COUNT(*) FROM customers; -- count total no of rows from customers table
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public';
+
+-- mini project contd
+--Add 2 new products and 1 new order with 2 items
+SELECT * FROM products;
+
+INSERT INTO products (product_id, name, price) VALUES 
+(14, 'Laptop Charger', 10000),
+(15, 'Adapter', 1000);
+
+SELECT *  FROM products;
+
+SELECT * FROM orders;
+INSERT INTO orders (order_id, customer_id, order_date) VALUES
+(103, 3, '2026-03-04');
+
+SELECT * FROM orders;
