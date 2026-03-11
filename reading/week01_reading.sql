@@ -59,3 +59,27 @@ ORDER BY price DESC;
 -- LIMIT syntax - SELECT .. FROM table LIMIT n;
 SELECT * FROM customers
 LIMIT 2;
+
+SELECT current_database();
+
+'''sessoin B reading'''
+
+--PRIMARY KEY syntax - CREATE TABLE t (id INT PRIMARY KEY, ..);
+
+-- or composite key - PRIMARY KEY (col1, col2)
+
+CREATE TABLE demo_pk (
+id INT PRIMARY KEY,
+name TEXT
+);
+
+INSERT INTO demo_pk (id, name) VALUES (1, 'U');
+
+--INSERT INTO demo_pk (id, name) VALUES (1, 'B'); - failed beacuse id=1 already exists
+
+-- FOREIGN KEY syntax - CREATE TABLE child (parent_id INT REFERENCES parent (parent_id));
+SELECT * FROM orders;
+
+--INSERT INTO orders (order_id, customer_id, order_date) VALUES (999, 999, '2026-03-03') - error because customer_id 999 is not in customers table
+
+SELECT * FROM orders;
