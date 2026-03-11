@@ -83,3 +83,22 @@ SELECT * FROM orders;
 --INSERT INTO orders (order_id, customer_id, order_date) VALUES (999, 999, '2026-03-03') - error because customer_id 999 is not in customers table
 
 SELECT * FROM orders;
+
+--INNER JOIN syntax - SELECT .. FROM table_a JOIN table_b ON a.key = b.key;
+
+--orders with customer names
+SELECT o.order_id, o.customer_id, o.order_date, c.full_name
+FROM orders o
+JOIN customers c
+ON o.customer_id = c.customer_id
+ORDER BY o.order_id;
+
+-- order items with product names
+SELECT * FROM order_items;
+SELECT * FROM products;
+
+SELECT oi.order_id, p.product_id, p.name, p.price, oi.qty
+FROM order_items oi
+JOIN products p
+	ON oi.product_id = p.product_id
+ORDER BY oi.order_id, p.name;
