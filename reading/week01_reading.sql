@@ -102,3 +102,25 @@ FROM order_items oi
 JOIN products p
 	ON oi.product_id = p.product_id
 ORDER BY oi.order_id, p.name;
+
+--Alias syntax - From customers c SELECT p.name AS product_name
+SELECT p.name AS product_name, p.price AS unit_price
+FROM products p;
+
+--Aggregate function syntax - SELECT count(*) FROM table;
+-- SELECT SUM(col) FROM table;
+SELECT COUNT(*) AS total_customers FROM customers;
+SELECT SUM(qty) AS total_items_sold FROM order_items;
+
+-- GROUP BY syntax - SELECT group_col, AGG (..) FROM table GROUP BY group_col;
+--how many orders each customer made
+SELECT o.customer_id, count(*) AS orders_count
+FROM orders o
+GROUP BY o.customer_id
+ORDER BY customer_id;
+
+--total quantity sold per product
+SELECT oi.product_id, SUM(oi.qty) AS total_quantity
+FROM order_items oi
+GROUP BY oi.product_id
+ORDER BY oi.product_id;
