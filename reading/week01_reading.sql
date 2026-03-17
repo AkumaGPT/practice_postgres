@@ -124,3 +124,13 @@ SELECT oi.product_id, SUM(oi.qty) AS total_quantity
 FROM order_items oi
 GROUP BY oi.product_id
 ORDER BY oi.product_id;
+
+SELECT * FROM order_items;
+
+-- join 2 tables together to know the exact product name with their respective quantities
+SELECT p.name, SUM(oi.qty) AS total_quantity
+FROM order_items oi
+JOIN products p
+	ON oi.product_id = p.product_id 
+GROUP BY p.name
+ORDER BY p.name
