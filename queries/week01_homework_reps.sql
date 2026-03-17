@@ -1,3 +1,5 @@
+'''session A reps'''
+
 -- list all products
 SELECT * FROM products;
 
@@ -41,3 +43,22 @@ WHERE price >= 3500;
 --show products with price <= 3500
 SELECT * FROM products
 WHERE price <= 3500;
+
+'''session B reps'''
+
+-- count total orders
+SELECT COUNT(*) FROM orders;
+
+-- count total prodcuts
+SELECT COUNT(*) FROM products;
+
+-- count order_items rows
+SELECT count(*) FROM order_items;
+
+-- Orders per customer (customer_id + count)
+SELECT o.customer_id, count(o.customer_id) AS total_orders
+FROM orders o
+GROUP BY o.customer_id
+ORDER BY o.customer_id;
+
+-- Orders per customer (full_name + count)
