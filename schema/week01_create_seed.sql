@@ -77,3 +77,9 @@ INSERT INTO orders (order_id, customer_id, order_date) VALUES
 (103, 3, '2026-03-04');
 
 SELECT * FROM orders;
+SELECT * FROM order_items;
+
+INSERT INTO order_items (order_id, product_id, qty) VALUES
+(103, 10, 1),
+(101, 11, 2),
+(103, 13, 3);
