@@ -56,13 +56,7 @@ SELECT COUNT(*) FROM products;
 SELECT count(*) FROM order_items;
 
 -- Orders per customer (customer_id + count)
-SELECT o.customer_id, count(o.customer_id) AS total_orders
-FROM orders o
-GROUP BY o.customer_id
-ORDER BY o.customer_id;
-
--- Orders per customer (full_name + count)
-SELECT o.customer_id, count(o.customer_id) AS total_orders
+SELECT o.customer_id, count(*) AS total_orders
 FROM orders o
 GROUP BY o.customer_id
 ORDER BY o.customer_id;
@@ -71,7 +65,7 @@ ORDER BY o.customer_id;
 SELECT * FROM orders;
 SELECT * FROM customers;
 
-SELECT o.customer_id, c.full_name, count(o.customer_id) AS total_orders
+SELECT o.customer_id, c.full_name, count(*) AS total_orders
 FROM customers c
 JOIN orders o
 	ON c.customer_id = o.customer_id
@@ -110,7 +104,7 @@ ORDER BY oi.order_id
 -- Total revenue per customer name
 SELECT * FROM orders;
 
-SELECT c.full_name, SUM(oi.qty * p.price) AS total_revenue
+SELECT c.customer_id, c.full_name, SUM(oi.qty * p.price) AS total_revenue
 FROM customers c
 JOIN orders o
     ON c.customer_id = o.customer_id
@@ -118,7 +112,18 @@ JOIN order_items oi
 	ON o.order_id = oi.order_id
 JOIN products p
     ON oi.product_id = p.product_id
-GROUP BY c.full_name
+GROUP BY c.customer_id, c.full_name
 ORDER BY c.full_name;
 
 -- Top 1 highest spending customer
+SELECT c.customer_id, c.full_name, SUM(oi.qty * p.price) AS total_spent
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+JOIN order_items oi
+	ON o.order_id = oi.order_id
+JOIN products p
+    ON oi.product_id = p.product_id
+GROUP BY c.customer_id, c.full_name
+ORDER BY total_spent DESC
+LIMIT 1;
