@@ -53,11 +53,11 @@ LIMIT 5;
 -- show films ordered by film_id - offset 0
 SELECT film_id, title
 FROM film
-ORDER BY film_id OFFSET 0
-LIMIT 10;
+ORDER BY film_id
+LIMIT 10 OFFSET 0;
 
 -- show films ordered by film_id - offset 5
 SELECT film_id, title
 FROM film
-ORDER BY film_id OFFSET 5
-LIMIT 10;
+ORDER BY film_id
+LIMIT 10 OFFSET 5;
