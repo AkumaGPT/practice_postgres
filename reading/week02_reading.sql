@@ -64,3 +64,29 @@ SELECT film_id, title
 FROM film
 ORDER BY film_id
 LIMIT 10 OFFSET 10;
+
+'''session B reading'''
+
+-- INNER JOIN
+-- know the customers that paid for stuff
+SELECT * FROM customer 
+LIMIT 4;
+SELECT * FROM payment
+LIMIT 4;
+
+SELECT  c.customer_id, c.first_name, c.last_name, p.amount
+FROM customer c
+JOIN payment p
+	ON c.customer_id = p.customer_id
+LIMIT 10;
+
+-- LEFT JOIN synatax - SELECT .. FROM a LEFT JOIN b ON a.key = b.key;
+-- list customers and any payment
+SELECT c.customer_id, c.first_name, SUM(p.amount) AS total_amount
+FROM customer c
+LEFT JOIN payment p
+	ON p.customer_id = c.customer_id 
+GROUP BY c.customer_id 
+ORDER BY c.customer_id 
+LIMIT 10;
+
