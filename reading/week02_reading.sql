@@ -103,3 +103,27 @@ FROM payment
 GROUP BY customer_id
 ORDER BY total_spent DESC
 LIMIT 5;
+
+SELECT SUM(amount) AS total_revenue
+FROM payment;
+
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id 
+ORDER BY total_spent DESC
+LIMIT 5;
+
+-- payments per staff
+SELECT staff_id, count(*) AS payments_collected
+FROM payment
+GROUP BY staff_id
+ORDER BY payments_collected DESC;
+
+-- Having syntax - SELECT group_col, AGG(...) FROM table GROUP BY group col HAVING AGG(...) > value;
+-- customers who have spent more than 150
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id
+HAVING sum(amount) > 150
+ORDER BY total_spent DESC
+LIMIT 10;
