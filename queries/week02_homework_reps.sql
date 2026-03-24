@@ -131,35 +131,35 @@ SELECT c.customer_id, c.first_name, c.last_name, SUM(p.amount) AS total_spent
 FROM payment p
 JOIN customer c
     ON c.customer_id = p.customer_id 
-GROUP BY c.customer_id
+GROUP BY c.customer_id, c.first_name, c.last_name
 ORDER BY total_spent DESC
 LIMIT 10;
 
 -- Total revenue collected per staff_id (GROUP BY staff_id + SUM)
-SELECT DISTINCT staff_id, SUM(amount) AS total_staff_revenue
+SELECT staff_id, SUM(amount) AS total_staff_revenue
 FROM payment
 GROUP BY staff_id
 ORDER BY total_staff_revenue
 
 -- Staff revenue but only staff with revenue > 3000 (HAVING)
-SELECT DISTINCT staff_id, SUM(amount) AS total_staff_revenue
+SELECT staff_id, SUM(amount) AS total_staff_revenue
 FROM payment
 GROUP BY staff_id
 HAVING SUM(amount) > 3000
 ORDER BY total_staff_revenue
 
 -- Payments per day: group by DATE(payment_date) and count (top 10 days by count)
-SELECT payment_date, COUNT(payment_date) AS payments_per_day
+SELECT DATE(payment_date) AS day, COUNT(*) AS payments_per_day
 FROM payment
-GROUP BY payment_date
-ORDER BY payment_date DESC
+GROUP BY DATE(payment_date)
+ORDER BY payments_per_day DESC
 LIMIT 10;
 
 -- Payments per day: group by DATE(payment_date) and sum (top 10 days by revenue)
-SELECT payment_date, SUM(amount) AS days
+SELECT DATE(payment_date) AS day, SUM(amount) AS daily_revenue
 FROM payment
-GROUP BY payment_date
-ORDER BY payment_date DESC
+GROUP BY DATE(payment_date)
+ORDER BY daily_revenue DESC
 LIMIT 10;
 
 -- 10 most recent rentals with film title (join path)
@@ -169,12 +169,10 @@ JOIN inventory i
 	ON f.film_id = i.film_id
 JOIN rental r 
 	ON r.inventory_id = i.inventory_id 
-GROUP BY f.title, r.rental_date
 ORDER BY r.rental_date DESC 
 LIMIT 10;
 
 -- 10 rentals for one customer_id of your choice (filter + join title)
-
 SELECT r.customer_id, f.title, r.rental_date
 FROM film f
 JOIN inventory i
@@ -197,7 +195,7 @@ LIMIT 10;
 
 -- Mini project: Daily revenue report
 -- show day(payment date)
-SELECT payment_date FROM payment
+SELECT date(payment_date) FROM payment
 LIMIT 4;
 
 -- count payments
