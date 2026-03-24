@@ -194,3 +194,19 @@ GROUP BY customer_id
 HAVING count(*) > 35
 ORDER BY total_payment DESC 
 LIMIT 10;
+
+-- Mini project: Daily revenue report
+-- show day(payment date)
+SELECT payment_date FROM payment
+LIMIT 4;
+
+-- count payments
+SELECT count(*) AS payments_count FROM payment;
+
+-- daily revenue
+SELECT payment_date, SUM(amount) AS daily_revenue
+FROM payment
+GROUP BY payment_date
+ORDER BY daily_revenue DESC
+LIMIT 14;
+
