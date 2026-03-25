@@ -52,3 +52,28 @@ FROM film
 WHERE rental_rate > (SELECT AVG(rental_rate) FROM film)
 ORDER BY rental_rate
 LIMIT 10;
+
+-- CTE (WITH ..) syntax - WITH name AS (SELECT ..) SELECT .. FROM name;
+-- total spent per customer
+WITH spend AS (
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id
+)
+SELECT customer_id, total_spent
+FROM spend
+ORDER BY total_spent DESC
+LIMIT 10;
+
+-- add customer names in the final shape
+WITH spend AS (
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id
+)
+SELECT c.customer_id, c.first_name, c.last_name, s.total_spent
+FROM spend s
+JOIN customer c
+    ON s.customer_id = c.customer_id
+ORDER BY s.total_spent DESC
+LIMIT 10;
