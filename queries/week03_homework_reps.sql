@@ -90,3 +90,21 @@ SELECT day, daily_revenue, revenue_count
 FROM revenue_count
 ORDER BY day DESC
 LIMIT 14;
+
+-- Mini report
+WITH total_spent AS (
+SELECT customer_id, SUM(amount) AS spent
+FROM payment
+GROUP BY customer_id
+)
+SELECT c.customer_id, c.first_name, c.last_name, t.spent,
+	CASE
+		WHEN t.spent < 100 THEN 'Bronze'
+		WHEN t.spent < 150 THEN 'Silver'
+		ELSE 'Gold'
+	END AS customer_tier
+FROM customer c
+JOIN total_spent t
+    ON c.customer_id = t.customer_id
+ORDER BY t.spent DESC 
+LIMIT 20;
