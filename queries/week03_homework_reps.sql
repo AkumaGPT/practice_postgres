@@ -39,3 +39,54 @@ FROM film
 WHERE rental_rate > (SELECT AVG(rental_rate) FROM film)
 ORDER BY rental_rate DESC
 LIMIT 20;
+
+-- Customers who appear in rental (use IN (SELECT DISTINCT ...)) (limit 20)
+SELECT customer_id
+FROM customer
+WHERE customer_id IN (SELECT DISTINCT customer_id FROM rental)
+ORDER BY customer_id
+LIMIT 10;
+
+-- Customers who appear in payment (same idea) (limit 20)
+SELECT customer_id
+FROM customer
+WHERE customer_id IN (SELECT DISTINCT customer_id FROM payment)
+LIMIT 20;
+
+-- CTE practice
+-- CTE: total payments count per customer, then join customer names (top 10)
+WITH payment_count AS (
+SELECT customer_id, COUNT(amount) AS payment_count
+FROM payment
+GROUP BY customer_id
+)
+SELECT c.customer_id, c.first_name, c.last_name, p.payment_count
+FROM customer c
+JOIN payment_count p
+    ON c.customer_id = p.customer_id
+ORDER BY p.payment_count DESC 
+LIMIT 10;
+
+-- CTE: total spent per customer, then join customer names (top 10)
+WITH total_spent AS (
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id
+)
+SELECT c.customer_id, c.first_name, c.last_name, t.total_spent
+FROM customer c
+JOIN total_spent t
+    ON c.customer_id = t.customer_id
+ORDER BY t.total_spent DESC 
+LIMIT 10;
+
+-- CTE: daily revenue (DATE(payment_date)) with count + sum (top 14 days by date DESC)
+WITH revenue_count AS (
+SELECT DATE(payment_date) AS day, SUM(amount) AS daily_revenue, COUNT(amount) AS revenue_count
+FROM payment
+GROUP BY DATE(payment_date)
+)
+SELECT day, daily_revenue, revenue_count
+FROM revenue_count
+ORDER BY day DESC
+LIMIT 14;
