@@ -77,3 +77,63 @@ JOIN customer c
     ON s.customer_id = c.customer_id
 ORDER BY s.total_spent DESC
 LIMIT 10;
+
+''' SESSION B READING'''
+-- Window Funtion syntax -- FUNCTION(..) OVER (PARTITION BY.. ORDER BY ..)
+
+-- Add a row number to payments (biggest payment first)
+SELECT payment_id, customer_id, amount,
+	ROW_NUMBER() OVER (ORDER BY amount DESC) AS rn
+FROM payment
+LIMIT 10;
+
+-- Row number resets per customer (each customer's payments ranked)
+SELECT payment_id, customer_id, amount,
+	ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY amount DESC) AS rn
+FROM payment
+LIMIT 20;
+
+--PARTITION syntax - .. OVER (PARTITION BY group_col ORDER BY sort_col)
+
+-- Rank payments inside each customer
+SELECT payment_id, customer_id, amount,
+	RANK() OVER (PARTITION BY customer_id ORDER BY amount DESC) AS pay_rank
+FROM payment
+LIMIT 20;
+
+-- ROW_NUMBER() syntax - ROW_NUMBER() OVER (PARTITION BY.. ORDER BY..)
+
+-- Top 1 payment per customer
+WITH ranked AS (
+	SELECT customer_id, payment_id, amount,
+		ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY amount DESC) AS rn
+	FROM payment
+)
+SELECT customer_id, payment_id, amount, rn
+FROM ranked
+WHERE rn = 1
+ORDER BY amount DESC
+LIMIT 10;
+
+-- RANK() + DENSE_RANK() syntax - RANK() OVER (ORDER BY col DESC); DENSE_RANK() OVER (ORDER BY col DESC)
+SELECT payment_id, amount,
+	RANK() OVER (ORDER BY amount DESC) AS rnK,
+	DENSE_RANK() OVER (ORDER BY amount DESC) AS dense_rnk
+FROM payment
+LIMIT 20;
+
+-- Running total
+
+--SUM(col) OVER (ORDER BY sort_col) AS total_running
+
+-- Daily revenue + running revenue
+WITH daily AS (
+SELECT DATE(payment_date) AS day, SUM(amount) AS daily_revenue
+FROM payment
+GROUP BY DATE(payment_date)
+)
+SELECT DAY, daily_revenue,
+	SUM(daily_revenue) OVER (ORDER BY day) AS running_revenue
+FROM daily
+ORDER BY DAY
+LIMIT 14;
