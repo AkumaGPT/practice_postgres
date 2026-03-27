@@ -137,3 +137,17 @@ SELECT DAY, daily_revenue,
 FROM daily
 ORDER BY DAY
 LIMIT 14;
+
+-- Moving Average syntax - AVG(col) OVER (ORDER BY sort_col ROWS BETWEEN N PRECEDING AND CURRENT ROW)
+
+-- 7-day moving average of daily revenue
+WITH daily AS (
+	SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
+	FROM payment
+	GROUP BY DATE(payment_date)
+)
+SELECT DAY, daily_revenue,
+	AVG(daily_revenue) OVER (ORDER BY DAY ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7
+FROM daily
+ORDER BY DAY
+LIMIT 30;
