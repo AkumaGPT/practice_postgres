@@ -108,3 +108,17 @@ JOIN total_spent t
     ON c.customer_id = t.customer_id
 ORDER BY t.spent DESC 
 LIMIT 20;
+
+'''SESSION B'''
+
+-- Add row numbers to payments ordered by payment_date DESC (limit 20)
+SELECT payment_id, DATE(payment_date) AS DAY,
+	ROW_NUMBER() OVER (ORDER BY DATE(payment_date) DESC) AS rn
+FROM payment
+LIMIT 20;
+
+-- Add row numbers per customer ordered by payment_date DESC (limit 50)
+SELECT payment_id, DATE(payment_date) AS DAY,
+	ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY DATE(payment_date) DESC) AS rn
+FROM payment
+LIMIT 50;
