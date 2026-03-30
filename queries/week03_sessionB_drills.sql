@@ -30,12 +30,12 @@ LIMIT 20;
 
 -- Lab task 4 - 7-day moving average of revenue
 WITH daily AS (
-SELECT DATE(payment_date) AS DAY, AVG(amount) AS revenue_avg
+SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
 FROM payment
 GROUP BY DAY
 )
-SELECT DAY, revenue_avg,
-	AVG(revenue_avg) OVER (ORDER BY DAY ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7
+SELECT DAY, daily_revenue,
+	AVG(daily_revenue) OVER (ORDER BY DAY ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7
 FROM daily
 ORDER BY DAY
 LIMIT 20;
