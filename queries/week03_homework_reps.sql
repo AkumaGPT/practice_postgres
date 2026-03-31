@@ -122,3 +122,62 @@ SELECT payment_id, DATE(payment_date) AS DAY,
 	ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY DATE(payment_date) DESC) AS rn
 FROM payment
 LIMIT 50;
+
+-- Rank customers by total_spent (CTE + SUM + RANK) top 20
+WITH spend AS (
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id
+)
+SELECT customer_id, total_spent,
+	RANK() OVER (ORDER BY total_spent) AS rnk
+FROM spend
+ORDER BY total_spent
+LIMIT 20;
+
+-- Dense rank customers by total_spent (same query but DENSE_RANK) top 20
+WITH spend AS (
+SELECT customer_id, SUM(amount) AS total_spent
+FROM payment
+GROUP BY customer_id
+)
+SELECT customer_id, total_spent,
+	DENSE_RANK() OVER (ORDER BY total_spent) AS dense_rnk
+FROM spend
+ORDER BY total_spent
+LIMIT 20;
+
+-- Daily revenue table (day, daily_revenue) last 30 days (order by day DESC limit 30)
+SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
+FROM payment
+GROUP BY DAY
+ORDER BY DAY DESC
+LIMIT 30;
+
+-- Running revenue from the daily table (order by day) limit 30
+WITH daily AS (
+SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
+FROM payment
+GROUP BY DAY
+ORDER BY DAY DESC
+)
+SELECT DAY, daily_revenue,
+	SUM(daily_revenue) OVER (ORDER BY DAY DESC) AS running_revenue
+FROM daily
+ORDER BY DAY DESC
+LIMIT 30;
+
+-- 7-day moving average on daily revenue (limit 30)
+WITH daily AS (
+SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
+FROM payment
+GROUP BY DAY
+ORDER BY DAY DESC
+)
+SELECT DAY, daily_revenue,
+	AVG(daily_revenue) OVER (ORDER BY DAY DESC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS running_revenue
+FROM daily
+ORDER BY DAY DESC
+LIMIT 30;
+
+-- Top 2 payments per customer (ROW_NUMBER partition + rn <= 2) limit 50
