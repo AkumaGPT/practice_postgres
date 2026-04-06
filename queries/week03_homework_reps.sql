@@ -1,124 +1,12 @@
--- CASE practice
--- 1.	Film length bucket: < 60 = short, < 120 = medium, else long (show title, length, bucket, limit 20)
-SELECT title, length,
-CASE
-	WHEN length < 60 THEN 'short'
-	WHEN length < 120 THEN 'medium'
-	ELSE 'long'
-END AS length_bucket
-FROM film
-LIMIT 20;
-
--- 2.	Payment bucket: < 2 = low, < 5 = medium, else high (show payment_id, amount, bucket, limit 20)
-SELECT payment_id, amount,
-CASE 
-	WHEN amount < 2 THEN 'low'
-	WHEN amount < 5 THEN 'medium'
-	ELSE 'high'
-END AS payment_bucket
-FROM payment
-LIMIT 20;
-
--- COALESCE practice
--- Address2 clean with (none) (limit 20)
-SELECT address_id, address,
-	COALESCE(address2, '(none)') AS address2_clean
-FROM address
-LIMIT 20;
-
--- District clean with (no district) from address (limit 20)
-SELECT address,
-	COALESCE(district, '(no district)') AS district_clean
-FROM address
-LIMIT 20;
-
--- Subquery practice
--- Films with rental_rate greater than the average (limit 20)
-SELECT title, rental_rate
-FROM film
-WHERE rental_rate > (SELECT AVG(rental_rate) FROM film)
-ORDER BY rental_rate DESC
-LIMIT 20;
-
--- Customers who appear in rental (use IN (SELECT DISTINCT ...)) (limit 20)
-SELECT customer_id
-FROM customer
-WHERE customer_id IN (SELECT DISTINCT customer_id FROM rental)
-ORDER BY customer_id
-LIMIT 10;
-
--- Customers who appear in payment (same idea) (limit 20)
-SELECT customer_id
-FROM customer
-WHERE customer_id IN (SELECT DISTINCT customer_id FROM payment)
-LIMIT 20;
-
--- CTE practice
--- CTE: total payments count per customer, then join customer names (top 10)
-WITH payment_count AS (
-SELECT customer_id, COUNT(amount) AS payment_count
-FROM payment
-GROUP BY customer_id
-)
-SELECT c.customer_id, c.first_name, c.last_name, p.payment_count
-FROM customer c
-JOIN payment_count p
-    ON c.customer_id = p.customer_id
-ORDER BY p.payment_count DESC 
-LIMIT 10;
-
--- CTE: total spent per customer, then join customer names (top 10)
-WITH total_spent AS (
-SELECT customer_id, SUM(amount) AS total_spent
-FROM payment
-GROUP BY customer_id
-)
-SELECT c.customer_id, c.first_name, c.last_name, t.total_spent
-FROM customer c
-JOIN total_spent t
-    ON c.customer_id = t.customer_id
-ORDER BY t.total_spent DESC 
-LIMIT 10;
-
--- CTE: daily revenue (DATE(payment_date)) with count + sum (top 14 days by date DESC)
-WITH revenue_count AS (
-SELECT DATE(payment_date) AS day, SUM(amount) AS daily_revenue, COUNT(amount) AS revenue_count
-FROM payment
-GROUP BY DATE(payment_date)
-)
-SELECT day, daily_revenue, revenue_count
-FROM revenue_count
-ORDER BY day DESC
-LIMIT 14;
-
--- Mini report
-WITH total_spent AS (
-SELECT customer_id, SUM(amount) AS spent
-FROM payment
-GROUP BY customer_id
-)
-SELECT c.customer_id, c.first_name, c.last_name, t.spent,
-	CASE
-		WHEN t.spent < 100 THEN 'Bronze'
-		WHEN t.spent < 150 THEN 'Silver'
-		ELSE 'Gold'
-	END AS customer_tier
-FROM customer c
-JOIN total_spent t
-    ON c.customer_id = t.customer_id
-ORDER BY t.spent DESC 
-LIMIT 20;
-
-'''SESSION B'''
-
 -- Add row numbers to payments ordered by payment_date DESC (limit 20)
+
 SELECT payment_id, DATE(payment_date) AS DAY,
 	ROW_NUMBER() OVER (ORDER BY DATE(payment_date) DESC) AS rn
 FROM payment
 LIMIT 20;
 
 -- Add row numbers per customer ordered by payment_date DESC (limit 50)
-SELECT payment_id, DATE(payment_date) AS DAY,
+SELECT customer_id, DATE(payment_date) AS DAY,
 	ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY DATE(payment_date) DESC) AS rn
 FROM payment
 LIMIT 50;
@@ -132,7 +20,7 @@ GROUP BY customer_id
 SELECT customer_id, total_spent,
 	RANK() OVER (ORDER BY total_spent) AS rnk
 FROM spend
-ORDER BY total_spent
+ORDER BY total_spent DESC
 LIMIT 20;
 
 -- Dense rank customers by total_spent (same query but DENSE_RANK) top 20
@@ -144,7 +32,7 @@ GROUP BY customer_id
 SELECT customer_id, total_spent,
 	DENSE_RANK() OVER (ORDER BY total_spent) AS dense_rnk
 FROM spend
-ORDER BY total_spent
+ORDER BY total_spent DESC
 LIMIT 20;
 
 -- Daily revenue table (day, daily_revenue) last 30 days (order by day DESC limit 30)
@@ -159,12 +47,11 @@ WITH daily AS (
 SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
 FROM payment
 GROUP BY DAY
-ORDER BY DAY DESC
 )
 SELECT DAY, daily_revenue,
-	SUM(daily_revenue) OVER (ORDER BY DAY DESC) AS running_revenue
+	SUM(daily_revenue) OVER (ORDER BY DAY) AS running_revenue
 FROM daily
-ORDER BY DAY DESC
+ORDER BY DAY
 LIMIT 30;
 
 -- 7-day moving average on daily revenue (limit 30)
@@ -175,9 +62,92 @@ GROUP BY DAY
 ORDER BY DAY DESC
 )
 SELECT DAY, daily_revenue,
-	AVG(daily_revenue) OVER (ORDER BY DAY DESC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS running_revenue
+	AVG(daily_revenue) OVER (ORDER BY DAY ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7
 FROM daily
-ORDER BY DAY DESC
+ORDER BY DAY
 LIMIT 30;
 
 -- Top 2 payments per customer (ROW_NUMBER partition + rn <= 2) limit 50
+WITH spend AS (
+	SELECT customer_id, amount,
+		ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY amount DESC) AS rn
+	FROM payment
+)
+SELECT customer_id, amount
+FROM spend
+WHERE rn <= 2
+LIMIT 50;
+
+-- Top 3 customers per staff by revenue collected (staff_id partition; rank by SUM(amount))
+WITH spend AS (
+	SELECT customer_id, staff_id, SUM(amount) AS total_spent
+	FROM payment
+	GROUP BY customer_id, staff_id
+)
+SELECT customer_id, staff_id, total_spent
+FROM (
+	SELECT *,
+		RANK() OVER (PARTITION BY staff_id ORDER BY total_spent DESC) AS rnk
+	FROM spend
+) t
+WHERE rnk <= 3
+LIMIT 20;
+
+-- Rank films by rental count (join rental→inventory→film; count rentals; rank) top 20
+SELECT title, COUNT(*) AS rental_count,
+	RANK() OVER (ORDER BY COUNT(rental_rate) DESC) AS rank
+FROM rental r
+JOIN inventory i
+	ON i.inventory_id = r.inventory_id 
+JOIN film f
+	ON f.film_id = i.film_id
+GROUP BY title
+ORDER BY COUNT(*) DESC
+LIMIT 20;
+
+-- Dense rank films by rental count (same) top 20
+SELECT title, COUNT(rental_rate) AS rental_count,
+	DENSE_RANK() OVER (ORDER BY COUNT(rental_rate) DESC) AS rank
+FROM rental r
+JOIN inventory i
+	ON i.inventory_id = r.inventory_id 
+JOIN film f
+	ON f.film_id = i.film_id
+GROUP BY title
+ORDER BY COUNT(rental_rate) DESC
+LIMIT 20;
+
+-- Find ties: list films that share the same rental_count as another film (hint: use a CTE and count occurrences)
+WITH rent AS (
+SELECT f.film_id, f.title, COUNT(*) AS rental_count
+FROM rental r
+JOIN inventory i ON i.inventory_id = r.inventory_id
+JOIN film f ON f.film_id = i.film_id
+GROUP BY f.film_id, f.title
+),
+counts AS (
+SELECT rental_count
+FROM rent
+GROUP BY rental_count
+HAVING COUNT(*) > 1
+)
+SELECT *
+FROM rent
+WHERE rental_count IN (SELECT rental_count FROM counts)
+LIMIT 4;
+
+-- Mini Project
+
+-- Revenue dashboard for last 14 days
+WITH daily AS (
+SELECT DATE(payment_date) AS DAY, SUM(amount) AS daily_revenue
+FROM payment
+GROUP BY DAY
+ORDER BY DAY DESC
+)
+SELECT DAY, daily_revenue,
+	SUM(daily_revenue) OVER (ORDER BY DAY DESC) AS running_revenue,
+	AVG(daily_revenue) OVER (ORDER BY DAY DESC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7
+FROM daily
+ORDER BY DAY DESC
+LIMIT 30;
