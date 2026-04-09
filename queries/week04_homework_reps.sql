@@ -10,7 +10,7 @@ WHERE full_name = 'Bola.O'
 RETURNING full_name, email;
 
 -- SELECT * FROM bootcamp.bc_customer
-SELECT * FROM bootcamp.bc_customer
+SELECT * FROM bootcamp.bc_customer;
 
 -- Begin a transaction, update a customer email, then ROLLBACK (prove it with SELECT)
 BEGIN;
@@ -49,7 +49,8 @@ SET total_amount = (SELECT COALESCE(SUM(qty*unit_price), 0)
 FROM bootcamp.bc_order_item oi
 WHERE oi.order_id = o.order_id
 )
-WHERE o.order_id = 3;
+WHERE o.order_id = 3
+RETURNING total_amount
 
 ROLLBACK;
 
