@@ -55,3 +55,71 @@ RETURNING *;
 DELETE FROM bootcamp.bc_customer
 WHERE email = 'tunde@test.com'
 RETURNING customer_id, full_name;
+
+'''SESSION B reading'''
+SELECT table_schema, table_name
+FROM information_schema.TABLES
+WHERE table_schema = 'bootcamp'
+ORDER BY table_name;
+
+SELECT current_database()
+
+-- INDEX syntax - CREATE INDEX index_name ON schema.table (col); 
+-- for multi-column - CREATE INDEX index_name ON schema.table (col1, col2);
+
+-- we'll frequently look up orders by customer_id:
+CREATE INDEX idx_bc_order_customer_id ON bootcamp.bc_order (customer_id);
+
+-- we'll frequently look up items in order_id:
+CREATE INDEX idx_bc_order_item_order_id ON bootcamp.bc_order_item (order_id);
+
+-- EXPLAIN syntax - EXPLAIN select ...; EXPLAIN ANALYZE select..; it runs and measures
+EXPLAIN
+SELECT *
+FROM bootcamp.bc_order
+WHERE customer_id = 1;
+
+EXPLAIN ANALYZE
+SELECT *
+FROM bootcamp.bc_order
+WHERE customer_id = 1;
+
+-- UNIQUE syntax - ALTER TABLE schema.table ADD CONSTRAINT constraint_name UNIQUE (col);
+
+-- UPSERT syntax - 
+
+--INSERT INTO table (col1, col2)
+-- ON CONFLICT (unique_col)
+-- DO UPDATE SET col2 = EXCLUDED.col2
+--RETURNING *;
+
+-- or do nothing
+--ON CONFLICT (unique_col) DO NOTHING;
+
+-- if email already exist, update the name instead
+INSERT INTO bootcamp.bc_customer (full_name, email)
+VALUES ('Amaka Updated', 'amaka@test.com')
+ON CONFLICT (email)
+DO UPDATE SET full_name = EXCLUDED.full_name
+RETURNING customer_id, full_name, email;
+
+-- if email exsits, skip insert
+INSERT INTO bootcamp.bc_customer (full_name, email)
+VALUES ('should not insert', 'amaka@test.com')
+ON CONFLICT (email)
+DO NOTHING
+RETURNING customer_id;
+
+-- Query hygiene - good habits; explicit columns, always preview before UPDATE/DELETE, wrap risky changes in BEGIN/ROLLBACK first
+
+--preview the update
+SELECT * FROM bootcamp.bc_customer WHERE customer_id = 1
+
+BEGIN;
+
+UPDATE bootcamp.bc_customer
+SET full_name = 'Amaka N.'
+WHERE customer_id = 1
+RETURNING *
+
+COMMIT;
