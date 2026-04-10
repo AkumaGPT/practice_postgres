@@ -77,3 +77,53 @@ ORDER BY o.order_id;
 -- Select from bootcamp.v_orders_report ordered by total_amount DESC LIMIT 10
 SELECT * FROM bootcamp.v_orders_report
 ORDER BY total_amount DESC;
+
+
+'''SESSSION B'''
+-- EXPLAIN a query that joins bc_order to bc_customer
+EXPLAIN
+SELECT o.order_id, c.customer_id, c.full_name, o.total_amount
+FROM bootcamp.bc_order o
+JOIN bootcamp.bc_customer c
+ON o.customer_id = c.customer_id
+ORDER BY total_amount DESC
+
+-- EXPLAIN a query that joins bc_order to bc_customer
+EXPLAIN ANALYZE
+SELECT o.order_id, c.customer_id, c.full_name, o.total_amount
+FROM bootcamp.bc_order o
+JOIN bootcamp.bc_customer c
+ON o.customer_id = c.customer_id
+ORDER BY total_amount DESC
+
+-- Create an index on bootcamp.bc_customer(email) (IF NOT EXISTS)
+CREATE INDEX IF NOT EXISTS idx_bc_customer_email
+ON bootcamp.bc_customer (email);
+
+-- Write an UPSERT that updates full_name when email conflicts
+INSERT INTO bootcamp.bc_customer (full_name, email)
+VALUES ('Obi K.', 'obinnak@test.com')
+ON CONFLICT (email)
+DO UPDATE SET full_name = EXCLUDED.full_name
+RETURNING *;
+
+-- Write an UPSERT that does NOTHING when email conflicts
+INSERT INTO bootcamp.bc_customer (full_name, email)
+VALUES ('Obi jj.', 'obinnak@test.com')
+ON CONFLICT (email)
+DO NOTHING;
+
+-- Preview a customer row, then UPDATE it inside BEGIN/ROLLBACK
+SELECT * FROM bootcamp.bc_customer WHERE customer_id = 3;
+
+BEGIN;
+
+UPDATE bootcamp.bc_customer
+SET email = 'zaini@test.com'
+WHERE customer_id = 3;
+
+ROLLBACK;
+
+-- Insert a new order for customer 1 and RETURNING order_id
+INSERT INTO bootcamp.bc_order (customer_id, order_date, total_amount) 
+VALUES (1, '2026-04-12', 0);
