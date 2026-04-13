@@ -1,0 +1,1 @@
+I tried inserting 18,000 as an INT but got an error because postgreSQL doesn't allow commas or underscores when storing a number.
